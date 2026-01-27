@@ -1,5 +1,6 @@
 /**
- * Copyright (c) Greg Anderson
+ * Author: Greg Anderson
+ * Modified by Avik De
  */
 #include <iostream>
 #include <chrono>
