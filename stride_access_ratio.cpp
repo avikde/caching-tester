@@ -28,10 +28,10 @@ int main()
 
     // 2: Sequential strides
     warmup();
-    for (size_t stride = 2; stride < MAX_STRIDE; ++stride)
+    for (size_t stride = 2; stride < 32; stride += 2)
     {
         auto strideTime = testStride(stride);
-        std::cout << stride << " stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+        std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
     }
 }
 
