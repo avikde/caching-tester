@@ -15,4 +15,3 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
 # Executables
 add_executable(stride_access_ratio stride_access_ratio.cpp)
-add_executable(line_size line_size.cpp)

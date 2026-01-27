@@ -4,33 +4,44 @@
 #include <iostream>
 #include <chrono>
 
-float data[64'000'000];
+constexpr size_t ARRAY_SIZE = 64'000'000;
+constexpr size_t MAX_STRIDE = 64;
+
+float data[ARRAY_SIZE];
 
 void warmup();
-long long testStride(int stride);
+long long testStride(size_t stride);
 
 int main()
 {
-    // data.resize(64'000'000);
     warmup();
 
-    // No stride case:
-    auto noStrideTime = testStride(1);
-    auto strideTime = testStride(16);
+    // No stride case
+    long long noStrideTime = testStride(1);
 
-    std::cout << "no stride time: " << noStrideTime << " us" << std::endl;
-    std::cout << "   stride time: " << strideTime << " us" << std::endl;
-    std::cout << "         ratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+    // 1: Test at 64 bytes
+    long long strideTime = testStride(16);
+    std::cout << 16 << " stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+
+    std::cout << "---" << std::endl;
+
+    // 2: Sequential strides
+    warmup();
+    for (size_t stride = 2; stride < MAX_STRIDE; ++stride)
+    {
+        auto strideTime = testStride(stride);
+        std::cout << stride << " stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+    }
 }
 
 void warmup()
 {
     float sink = 0;
-    for (int i = 0; i < 64'000'000; i++)
+    for (size_t i = 0; i < ARRAY_SIZE; i++)
         sink += data[i];
 }
 
-long long testStride(int stride)
+long long testStride(size_t stride)
 {
     float sink = 0;
     /// NOTE:
@@ -41,7 +52,7 @@ long long testStride(int stride)
     using clock = std::chrono::steady_clock;
     int readIndex = 0;
     auto start = clock::now();
-    for (size_t i = 0; i < 1'000'000; i++)
+    for (size_t i = 0; i < ARRAY_SIZE / MAX_STRIDE; i++)
     {
         sink += data[readIndex];
         readIndex += stride;
