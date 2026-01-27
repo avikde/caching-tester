@@ -22,13 +22,13 @@ int main()
 
     // 1: Test at 64 bytes
     long long strideTime = testStride(16);
-    std::cout << 16 << " stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+    std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
 
     std::cout << "---" << std::endl;
 
     // 2: Sequential strides
     warmup();
-    for (size_t stride = 2; stride < 32; stride += 2)
+    for (size_t stride = 4; stride < 32; stride += 4)
     {
         auto strideTime = testStride(stride);
         std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
