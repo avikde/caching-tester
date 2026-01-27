@@ -7,41 +7,20 @@
 float data[64'000'000];
 
 void warmup();
+long long testStride(int stride);
 
 int main()
 {
-    using clock = std::chrono::steady_clock;
+    // data.resize(64'000'000);
     warmup();
 
-    float sink = 0;
-
     // No stride case:
-    int readIndex = 0;
-    auto start1 = clock::now();
-    for (int i = 0; i < 1'000'000; i++)
-    {
-        sink += data[readIndex];
-        readIndex += 1;
-    }
-    auto end1 = clock::now();
-
-    // Stride case:
-    readIndex = 0;
-    auto start2 = clock::now();
-    for (int i = 0; i < 1'000'000; i++)
-    {
-        sink += data[readIndex];
-        readIndex += 16;
-    }
-    auto end2 = clock::now();
-
-    const auto noStrideTime = std::chrono::duration_cast<std::chrono::microseconds>(end1 - start1).count();
-    const auto strideTime = std::chrono::duration_cast<std::chrono::microseconds>(end2 - start2).count();
+    auto noStrideTime = testStride(1);
+    auto strideTime = testStride(16);
 
     std::cout << "no stride time: " << noStrideTime << " us" << std::endl;
     std::cout << "   stride time: " << strideTime << " us" << std::endl;
     std::cout << "         ratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
-    std::cout << "          sink: " << sink << std::endl;
 }
 
 void warmup()
@@ -50,3 +29,28 @@ void warmup()
     for (int i = 0; i < 64'000'000; i++)
         sink += data[i];
 }
+
+long long testStride(int stride)
+{
+    float sink = 0;
+    /// NOTE:
+    // volatile sink = 0; here ruins the Release result
+    // This is because it forces sink to be stored and loaded from mem
+    // instead of staying in a register.
+
+    using clock = std::chrono::steady_clock;
+    int readIndex = 0;
+    auto start = clock::now();
+    for (size_t i = 0; i < 1'000'000; i++)
+    {
+        sink += data[readIndex];
+        readIndex += stride;
+    }
+    auto end = clock::now();
+
+    // Prevent compiler from optimizing away the loop
+    if (sink == -1.0f) std::cout << "";
+
+    return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
+}
+
