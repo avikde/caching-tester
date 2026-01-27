@@ -39,6 +39,21 @@ Release
 112B stride     time: 5572 us   ratio: 1.71869
 ```
 
+Release (backwards):
+
+```
+64B stride      time: 13429 us  ratio: 4.89395
+---
+128B stride     time: 16292 us  ratio: 5.93732
+112B stride     time: 2100 us   ratio: 0.765306
+96B stride      time: 1899 us   ratio: 0.692055
+80B stride      time: 1924 us   ratio: 0.701166
+64B stride      time: 1919 us   ratio: 0.699344
+48B stride      time: 1933 us   ratio: 0.704446
+32B stride      time: 1902 us   ratio: 0.693149
+16B stride      time: 1987 us   ratio: 0.724125
+```
+
 ### MSVC (Windows)
 
 Debug
@@ -69,28 +84,6 @@ Release
 112B stride     time: 15720 us  ratio: 3.63552
 ```
 
-
-### cl (Windows), Debug
-
-Release
-
-```shell
-$ ./caching-tester 
-no stride time: 2875 us
-   stride time: 14725 us
-         ratio: 5.12174
-          sink: 0
-```
-
-Debug
-
-```shell
-$ ./caching-tester 
-no stride time: 8240 us
-   stride time: 8259 us
-         ratio: 1.00231
-          sink: 0
-```
 
 ## Understanding the ratio
 
