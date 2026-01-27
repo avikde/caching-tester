@@ -1,3 +1,12 @@
+
+To build:
+
+```
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release # or Debug
+make -j
+```
+
 Release
 
 ```
