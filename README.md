@@ -33,13 +33,17 @@ no stride time: 8240 us
 
 ### Release mode
 
+Build and output the object file with debug symbols:
+```shell
+g++ -std=c++17 -O3 -g -c stride_access_ratio.cpp -o stride_access_ratio.o
+```
 With the object file:
 
 ```shell
 objdump -d -C -S stride_access_ratio.o | grep -A 50 "testStride"
 ```
 
-```
+```shell
     for (size_t i = 0; i < ARRAY_SIZE / MAX_STRIDE; i++)
   c8:   movslq %eax,%rcx              # Sign-extend readIndex to 64-bit
   cb:   add    $0x1,%eax              # readIndex += 1 (stride hardcoded!)
@@ -50,7 +54,7 @@ objdump -d -C -S stride_access_ratio.o | grep -A 50 "testStride"
 
 Slight difference for `stride != 0`, only in the modification of readIndex - everything else is the same.
 
-```
+```shell
  153:   add    %edi,%eax              # readIndex += stride (from %edi)
 ```
 
@@ -60,24 +64,15 @@ Observe:
 - Memory access pattern: (%rsi,%rcx,4) computes data[readIndex] where %rsi is the base address
 - The difference in performance comes entirely from the memory access pattern hitting cache differently, not from differences in instruction count
 - Register usage: `%xmm0` holds sink, `%eax` holds readIndex, `%rdx` is the loop counter
+- No loop unrolling: the loop is probably too large to do this.
 
 The assembly is remarkably similar between stride=1 and stride=16 - the 5x performance difference is purely from cache misses.
 
 ### Compare to Debug mode
 
-Similar after 
+Replace the `-O3` with `-O0`, and repeat the objdump. The code breakdown reveals:
+
 ```shell
-g++ -std=c++17 -O0 -g -c stride_access_ratio.cpp -o stride_access_ratio_O0.o
-```
-
-and 
-```shell
-objdump -d -C -S stride_access_ratio_O0.o | grep -A 80 "testStride"
-```
-
-The code breakdown reveals:
-
-```
     for (size_t i = 0; i < ARRAY_SIZE / MAX_STRIDE; i++)
  239:   movq   $0x0,-0x10(%rbp)        # i = 0 (initialize loop counter)
  241:   jmp    27d                      # Jump to loop condition check
@@ -109,10 +104,10 @@ So, the comparison reveals:
 
 |Aspect|**-O3 (Optimized)**|**-O0 (Debug)**|
 |---|---|---|
-|**Instructions per iteration**|5 instructions|**17 instructions**|
-|**Register usage**|`sink` stays in `%xmm0`|`sink` loaded from stack **every iteration**|
-|**Variable storage**|Registers only|**All variables on stack** (-0x38, -0x34, -0x48, -0x10)|
-|**Memory operations per iteration**|1 read (`data[readIndex]`)|**6 memory ops** (load sink, load readIndex, load stride, store sink, store readIndex, check i)|
+|**Instructions per iteration**|5 instructions|17 instructions|
+|**Register usage**|`sink` stays in `%xmm0`|`sink` loaded from memory every iteration|
+|**Variable storage**|Registers only|All variables on stack (-0x38, -0x34, -0x48, -0x10)|
+|**Memory operations per iteration**|1 read (`data[readIndex]`)|6 memory ops (load sink, load readIndex, load stride, store sink, store readIndex, check i)|
 
-The -O0 version performs **6 stack memory operations per iteration**, likely completely overwhelming the cache behavior we're trying to measure. The memory accesses add so much overhead that accessing data sequentially or with stride becomes irrelevant - both are slow due to the loads and stores.
+The -O0 version performs **6 memory operations per iteration**, likely completely overwhelming the cache behavior we're trying to measure. The memory accesses add so much overhead that accessing data sequentially or with stride becomes irrelevant - both are slow due to the loads and stores.
 
