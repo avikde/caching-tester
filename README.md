@@ -9,6 +9,69 @@ make -j
 
 ## Results
 
+### gcc (WSL)
+
+Debug
+
+```
+64B stride      time: 8040 us   ratio: 0.974191
+---
+16B stride      time: 8554 us   ratio: 1.03647
+32B stride      time: 8004 us   ratio: 0.969829
+48B stride      time: 8704 us   ratio: 1.05465
+64B stride      time: 7921 us   ratio: 0.959772
+80B stride      time: 9547 us   ratio: 1.15679
+96B stride      time: 8615 us   ratio: 1.04386
+112B stride     time: 7869 us   ratio: 0.953471
+```
+
+Release
+
+```
+64B stride      time: 15411 us  ratio: 4.75355
+---
+16B stride      time: 2066 us   ratio: 0.637261
+32B stride      time: 2608 us   ratio: 0.804442
+48B stride      time: 1993 us   ratio: 0.614744
+64B stride      time: 2019 us   ratio: 0.622764
+80B stride      time: 5246 us   ratio: 1.61814
+96B stride      time: 6400 us   ratio: 1.97409
+112B stride     time: 5572 us   ratio: 1.71869
+```
+
+### MSVC (Windows)
+
+Debug
+
+```
+64B stride      time: 7592 us   ratio: 0.965044
+---
+16B stride      time: 7643 us   ratio: 0.971527
+32B stride      time: 8581 us   ratio: 1.09076
+48B stride      time: 7653 us   ratio: 0.972798
+64B stride      time: 7856 us   ratio: 0.998602
+80B stride      time: 7807 us   ratio: 0.992373
+96B stride      time: 12923 us  ratio: 1.64268
+112B stride     time: 9856 us   ratio: 1.25283
+```
+
+Release
+
+```
+64B stride      time: 45264 us  ratio: 10.4681
+---
+16B stride      time: 1905 us   ratio: 0.440564
+32B stride      time: 3289 us   ratio: 0.760638
+48B stride      time: 2179 us   ratio: 0.503932
+64B stride      time: 3522 us   ratio: 0.814524
+80B stride      time: 12094 us  ratio: 2.79695
+96B stride      time: 15922 us  ratio: 3.68224
+112B stride     time: 15720 us  ratio: 3.63552
+```
+
+
+### cl (Windows), Debug
+
 Release
 
 ```shell
