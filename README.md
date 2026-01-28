@@ -15,24 +15,11 @@ release ASM with mingw:
 ```
 
 ```
-movq	$0, -16(%rbp)
-	jmp	.L14
-.L15:
-	movl	-8(%rbp), %eax
-	cltq
-	leaq	0(,%rax,4), %rdx
-	leaq	data(%rip), %rax
-	movss	(%rdx,%rax), %xmm0
-	movss	-4(%rbp), %xmm1
-	addss	%xmm1, %xmm0
-	movss	%xmm0, -4(%rbp)
-	movq	16(%rbp), %rax
-	movl	%eax, %edx
-	movl	-8(%rbp), %eax
-	addl	%edx, %eax
-	movl	%eax, -8(%rbp)
-	addq	$1, -16(%rbp)
-.L14:
-	cmpq	$999999, -16(%rbp)
-	jbe	.L15
+.L5:
+	movslq	%eax, %rcx
+	addl	$1, %eax
+	addss	(%r8,%rcx,4), %xmm6
+	subq	$1, %rdx
+	jne	.L5
+.L7:
 ```
