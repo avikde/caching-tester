@@ -5,8 +5,9 @@
 #include <iostream>
 #include <chrono>
 
-constexpr size_t ARRAY_SIZE = 64'000'000;
-constexpr size_t MAX_STRIDE = 64;
+constexpr size_t ARRAY_SIZE = 128'000'000;
+constexpr size_t MAX_STRIDE = 128;
+constexpr size_t T = 10; // tests per stride.
 
 float data[ARRAY_SIZE];
 
@@ -20,18 +21,19 @@ int main()
     // No stride case
     long long noStrideTime = testStride(1);
 
-    // 1: Test at 64 bytes
-    long long strideTime = testStride(16);
-    std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
-
-    std::cout << "---" << std::endl;
-
     // 2: Sequential strides
     warmup();
-    for (size_t stride = 4; stride < 32; stride += 4)
+    for (size_t stride = MAX_STRIDE; stride >= 1; stride -= 1)
     {
-        auto strideTime = testStride(stride);
-        std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+        double sum = 0.0;
+        for (size_t i = 0; i < T; ++i)
+            sum += testStride(stride);
+
+        double avgStrideTime = sum / T;
+
+        std::cout << stride * sizeof(float) << "B stride\ttime: " << avgStrideTime
+            << " us\tratio: " << avgStrideTime / static_cast<double>(noStrideTime)
+            << std::endl;
     }
 }
 
@@ -65,4 +67,3 @@ long long testStride(size_t stride)
 
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
-
