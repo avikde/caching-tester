@@ -22,7 +22,8 @@ int main()
 
     // 1: Test at 64 bytes
     long long strideTime = testStride(16);
-    std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+    std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<
+        float>(noStrideTime) << std::endl;
 
     std::cout << "---" << std::endl;
 
@@ -31,15 +32,18 @@ int main()
     for (size_t stride = 4; stride < 32; stride += 4)
     {
         auto strideTime = testStride(stride);
-        std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<float>(noStrideTime) << std::endl;
+        std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime /
+            static_cast<float>(noStrideTime) << std::endl;
     }
 }
 
 void warmup()
 {
     float sink = 0;
-    for (size_t i = 0; i < ARRAY_SIZE; i++)
-        sink += data[i];
+    for (int i = 0; i < 10; i++)
+        for (size_t j = 0; j < ARRAY_SIZE; j++)
+            sink += data[j];
+    std::cout << sink;
 }
 
 long long testStride(size_t stride)
@@ -65,4 +69,3 @@ long long testStride(size_t stride)
 
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
-
