@@ -43,7 +43,9 @@ void warmup()
     for (int i = 0; i < 10; i++)
         for (size_t j = 0; j < ARRAY_SIZE; j++)
             sink += data[j];
-    std::cout << sink;
+
+    // Prevent compiler from optimizing away the loop
+    if (sink == -1.0f) std::cout << "";
 }
 
 long long testStride(size_t stride)
