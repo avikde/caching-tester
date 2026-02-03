@@ -1,226 +1,169 @@
 
-10 "runs" per stride, stride increments by 4 bytes.
+To build:
 
-output:
-https://docs.google.com/spreadsheets/d/1Hr4u52INS3Dqp-nlQ81L-MxZcmFWv9_naqdooUigKpM/edit?usp=sharing
+```shell
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release # or Debug
+make -j
+```
 
-release ASM for the entire file with mingw:
+## Results
 
+### gcc (WSL)
+
+Debug
 
 ```
-	.linkonce discard
-
-std::ctype<char>::do_widen(char) const:
-	movl	%edx, %eax
-	ret
-
-warmup():
-	ret
-.LC2:
-	.ascii "\0"
-
-testStride(unsigned long long):
-	pushq	%rsi
-	pushq	%rbx
-	subq	$56, %rsp
-	movaps	%xmm6, 32(%rsp)
-	pxor	%xmm6, %xmm6
-	movq	%rcx, %rsi
-	call	std::chrono::_V2::steady_clock::now()
-	movl	$1000000, %edx
-	leaq	data(%rip), %r8
-	movq	%rax, %rbx
-	xorl	%eax, %eax
-	cmpq	$1, %rsi
-	jne	.L6
-.L5:
-	movslq	%eax, %rcx
-	addl	$1, %eax
-	addss	(%r8,%rcx,4), %xmm6
-	subq	$1, %rdx
-	jne	.L5
-.L7:
-	call	std::chrono::_V2::steady_clock::now()
-	ucomiss	.LC1(%rip), %xmm6
-	movq	%rax, %rsi
-	jp	.L8
-	je	.L14
-.L8:
-	subq	%rbx, %rsi
-	movaps	32(%rsp), %xmm6
-	movabsq	$2361183241434822607, %rax
-	imulq	%rsi
-	movq	%rsi, %rcx
-	sarq	$63, %rcx
-	sarq	$7, %rdx
-	movq	%rdx, %rax
-	subq	%rcx, %rax
-	addq	$56, %rsp
-	popq	%rbx
-	popq	%rsi
-	ret
-.L6:
-	movslq	%eax, %r9
-	addl	%esi, %eax
-	addss	(%r8,%r9,4), %xmm6
-	subq	$1, %rdx
-	jne	.L6
-	jmp	.L7
-.L14:
-	movq	.refptr.std::cout(%rip), %rcx
-	xorl	%r8d, %r8d
-	leaq	.LC2(%rip), %rdx
-	call	std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long long)
-	jmp	.L8
-.LC6:
-	.ascii "B stride\11time: \0"
-.LC7:
-	.ascii " us\11ratio: \0"
-
-main:
-	pushq	%r15
-	pushq	%r14
-	pushq	%r13
-	pushq	%r12
-	pushq	%rbp
-	pushq	%rdi
-	pushq	%rsi
-	pushq	%rbx
-	subq	$104, %rsp
-	movaps	%xmm6, 32(%rsp)
-	movaps	%xmm7, 48(%rsp)
-	movaps	%xmm8, 64(%rsp)
-	movaps	%xmm9, 80(%rsp)
-	pxor	%xmm9, %xmm9
-	movl	$128, %ebp
-	leaq	data(%rip), %r14
-	movabsq	$2361183241434822607, %rdi
-	leaq	std::ctype<char>::do_widen(char) const(%rip), %r13
-	call	__main
-	movl	$1, %ecx
-	call	testStride(unsigned long long)
-	movss	.LC1(%rip), %xmm8
-	cvtsi2sdq	%rax, %xmm9
-.L16:
-	movl	%ebp, %r15d
-	movl	$10, %ebx
-	pxor	%xmm7, %xmm7
-.L26:
-	call	std::chrono::_V2::steady_clock::now()
-	pxor	%xmm6, %xmm6
-	movl	$1000000, %edx
-	movq	%rax, %rsi
-	xorl	%eax, %eax
-.L17:
-	movslq	%eax, %rcx
-	addl	%r15d, %eax
-	addss	(%r14,%rcx,4), %xmm6
-	subq	$1, %rdx
-	jne	.L17
-	call	std::chrono::_V2::steady_clock::now()
-	ucomiss	%xmm8, %xmm6
-	movq	%rax, %r12
-	jp	.L18
-	je	.L31
-.L18:
-	movq	%r12, %r9
-	pxor	%xmm0, %xmm0
-	subq	%rsi, %r9
-	movq	%r9, %rax
-	sarq	$63, %r9
-	imulq	%rdi
-	sarq	$7, %rdx
-	subq	%r9, %rdx
-	cvtsi2sdq	%rdx, %xmm0
-	addsd	%xmm0, %xmm7
-	subq	$1, %rbx
-	jne	.L26
-	movq	.refptr.std::cout(%rip), %rcx
-	leaq	0(,%rbp,4), %rdx
-	divsd	.LC5(%rip), %xmm7
-	call	std::basic_ostream<char, std::char_traits<char> >& std::basic_ostream<char, std::char_traits<char> >::_M_insert<unsigned long long>(unsigned long long)
-	movl	$15, %r8d
-	leaq	.LC6(%rip), %rdx
-	movq	%rax, %rbx
-	movq	%rax, %rcx
-	call	std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long long)
-	movapd	%xmm7, %xmm1
-	movq	%rbx, %rcx
-	call	std::basic_ostream<char, std::char_traits<char> >& std::basic_ostream<char, std::char_traits<char> >::_M_insert<double>(double)
-	movl	$11, %r8d
-	leaq	.LC7(%rip), %rdx
-	movq	%rax, %rcx
-	movq	%rax, %rbx
-	call	std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long long)
-	movapd	%xmm7, %xmm1
-	movq	%rbx, %rcx
-	divsd	%xmm9, %xmm1
-	call	std::basic_ostream<char, std::char_traits<char> >& std::basic_ostream<char, std::char_traits<char> >::_M_insert<double>(double)
-	movq	%rax, %rsi
-	movq	(%rax), %rax
-	movq	-24(%rax), %rax
-	movq	240(%rsi,%rax), %rbx
-	testq	%rbx, %rbx
-	je	.L30
-	cmpb	$0, 56(%rbx)
-	je	.L23
-	movsbl	67(%rbx), %edx
-.L24:
-	movq	%rsi, %rcx
-	call	std::basic_ostream<char, std::char_traits<char> >::put(char)
-	movq	%rax, %rcx
-	call	std::basic_ostream<char, std::char_traits<char> >::flush()
-	subq	$1, %rbp
-	jne	.L16
-	movaps	32(%rsp), %xmm6
-	movaps	48(%rsp), %xmm7
-	xorl	%eax, %eax
-	movaps	64(%rsp), %xmm8
-	movaps	80(%rsp), %xmm9
-	addq	$104, %rsp
-	popq	%rbx
-	popq	%rsi
-	popq	%rdi
-	popq	%rbp
-	popq	%r12
-	popq	%r13
-	popq	%r14
-	popq	%r15
-	ret
-.L31:
-	movq	.refptr.std::cout(%rip), %rcx
-	xorl	%r8d, %r8d
-	leaq	.LC2(%rip), %rdx
-	call	std::basic_ostream<char, std::char_traits<char> >& std::__ostream_insert<char, std::char_traits<char> >(std::basic_ostream<char, std::char_traits<char> >&, char const*, long long)
-	jmp	.L18
-.L23:
-	movq	%rbx, %rcx
-	call	std::ctype<char>::_M_widen_init() const
-	movq	(%rbx), %rax
-	movl	$10, %edx
-	movq	48(%rax), %rax
-	cmpq	%r13, %rax
-	je	.L24
-	movq	%rbx, %rcx
-	call	*%rax
-	movsbl	%al, %edx
-	jmp	.L24
-
-main.cold:
-.L30:
-	call	std::__throw_bad_cast()
-	nop
-	.bss
-
-data:
-	.space 512000000
-.LC1:
-	.long	-1082130432
-.LC5:
-	.long	0
-	.long	1076101120
-	.linkonce	discard
-
-.refptr.std::cout:
-	.quad	std::cout
+64B stride      time: 8040 us   ratio: 0.974191
+---
+16B stride      time: 8554 us   ratio: 1.03647
+32B stride      time: 8004 us   ratio: 0.969829
+48B stride      time: 8704 us   ratio: 1.05465
+64B stride      time: 7921 us   ratio: 0.959772
+80B stride      time: 9547 us   ratio: 1.15679
+96B stride      time: 8615 us   ratio: 1.04386
+112B stride     time: 7869 us   ratio: 0.953471
 ```
+
+Release
+
+```
+64B stride      time: 15411 us  ratio: 4.75355
+---
+16B stride      time: 2066 us   ratio: 0.637261
+32B stride      time: 2608 us   ratio: 0.804442
+48B stride      time: 1993 us   ratio: 0.614744
+64B stride      time: 2019 us   ratio: 0.622764
+80B stride      time: 5246 us   ratio: 1.61814
+96B stride      time: 6400 us   ratio: 1.97409
+112B stride     time: 5572 us   ratio: 1.71869
+```
+
+Release (backwards):
+
+```
+64B stride      time: 13429 us  ratio: 4.89395
+---
+128B stride     time: 16292 us  ratio: 5.93732
+112B stride     time: 2100 us   ratio: 0.765306
+96B stride      time: 1899 us   ratio: 0.692055
+80B stride      time: 1924 us   ratio: 0.701166
+64B stride      time: 1919 us   ratio: 0.699344
+48B stride      time: 1933 us   ratio: 0.704446
+32B stride      time: 1902 us   ratio: 0.693149
+16B stride      time: 1987 us   ratio: 0.724125
+```
+
+### MSVC (Windows)
+
+Debug
+
+```
+64B stride      time: 7592 us   ratio: 0.965044
+---
+16B stride      time: 7643 us   ratio: 0.971527
+32B stride      time: 8581 us   ratio: 1.09076
+48B stride      time: 7653 us   ratio: 0.972798
+64B stride      time: 7856 us   ratio: 0.998602
+80B stride      time: 7807 us   ratio: 0.992373
+96B stride      time: 12923 us  ratio: 1.64268
+112B stride     time: 9856 us   ratio: 1.25283
+```
+
+Release
+
+```
+64B stride      time: 45264 us  ratio: 10.4681
+---
+16B stride      time: 1905 us   ratio: 0.440564
+32B stride      time: 3289 us   ratio: 0.760638
+48B stride      time: 2179 us   ratio: 0.503932
+64B stride      time: 3522 us   ratio: 0.814524
+80B stride      time: 12094 us  ratio: 2.79695
+96B stride      time: 15922 us  ratio: 3.68224
+112B stride     time: 15720 us  ratio: 3.63552
+```
+
+
+## Understanding the ratio
+
+### Release mode
+
+Build and output the object file with debug symbols:
+```shell
+g++ -std=c++17 -O3 -g -c stride_access_ratio.cpp -o stride_access_ratio.o
+```
+With the object file:
+
+```shell
+objdump -d -C -S stride_access_ratio.o | grep -A 50 "testStride"
+```
+
+```shell
+    for (size_t i = 0; i < ARRAY_SIZE / MAX_STRIDE; i++)
+  c8:   movslq %eax,%rcx              # Sign-extend readIndex to 64-bit
+  cb:   add    $0x1,%eax              # readIndex += 1 (stride hardcoded!)
+  ce:   addss  (%rsi,%rcx,4),%xmm0   # sink += data[readIndex]
+  d3:   sub    $0x1,%rdx              # i--
+  d7:   jne    c8                     # Loop if i != 0
+```
+
+Slight difference for `stride != 0`, only in the modification of readIndex - everything else is the same.
+
+```shell
+ 153:   add    %edi,%eax              # readIndex += stride (from %edi)
+```
+
+Observe:
+
+- No vectorization: Compiler uses scalar addss (single float) instead of vectorized SIMD instructions
+- Memory access pattern: (%rsi,%rcx,4) computes data[readIndex] where %rsi is the base address
+- The difference in performance comes entirely from the memory access pattern hitting cache differently, not from differences in instruction count
+- Register usage: `%xmm0` holds sink, `%eax` holds readIndex, `%rdx` is the loop counter
+- No loop unrolling: the loop is probably too large to do this.
+
+The assembly is remarkably similar between stride=1 and stride=16 - the 5x performance difference is purely from cache misses.
+
+### Compare to Debug mode
+
+Replace the `-O3` with `-O0`, and repeat the objdump. The code breakdown reveals:
+
+```shell
+    for (size_t i = 0; i < ARRAY_SIZE / MAX_STRIDE; i++)
+ 239:   movq   $0x0,-0x10(%rbp)        # i = 0 (initialize loop counter)
+ 241:   jmp    27d                      # Jump to loop condition check
+
+    # LOOP BODY START
+ 243:   mov    -0x34(%rbp),%eax        # Load readIndex from stack
+ 246:   cltq                            # Sign-extend to 64-bit
+ 248:   lea    0x0(,%rax,4),%rdx       # rdx = readIndex * 4 (offset in bytes)
+ 250:   lea    0x0(%rip),%rax          # Load data array base address
+ 257:   movss  (%rdx,%rax,1),%xmm0    # Load data[readIndex] into xmm0
+ 25c:   movss  -0x38(%rbp),%xmm1      # Load sink from stack into xmm1
+ 261:   addss  %xmm1,%xmm0            # sink + data[readIndex]
+ 265:   movss  %xmm0,-0x38(%rbp)      # Store result back to sink on stack
+
+        readIndex += stride;
+ 26a:   mov    -0x48(%rbp),%rax        # Load stride from stack
+ 26e:   mov    %eax,%edx                # Copy to edx
+ 270:   mov    -0x34(%rbp),%eax        # Load readIndex from stack
+ 273:   add    %edx,%eax                # readIndex += stride
+ 275:   mov    %eax,-0x34(%rbp)        # Store readIndex back to stack
+
+    # LOOP INCREMENT AND CHECK
+ 278:   addq   $0x1,-0x10(%rbp)        # i++
+ 27d:   cmpq   $0xf423f,-0x10(%rbp)    # Compare i < 1,000,000
+ 285:   jbe    243                      # Jump back if i <= limit
+```
+
+So, the comparison reveals:
+
+|Aspect|**-O3 (Optimized)**|**-O0 (Debug)**|
+|---|---|---|
+|**Instructions per iteration**|5 instructions|17 instructions|
+|**Register usage**|`sink` stays in `%xmm0`|`sink` loaded from memory every iteration|
+|**Variable storage**|Registers only|All variables on stack (-0x38, -0x34, -0x48, -0x10)|
+|**Memory operations per iteration**|1 read (`data[readIndex]`)|6 memory ops (load sink, load readIndex, load stride, store sink, store readIndex, check i)|
+
+The -O0 version performs **6 memory operations per iteration**, likely completely overwhelming the cache behavior we're trying to measure. The memory accesses add so much overhead that accessing data sequentially or with stride becomes irrelevant - both are slow due to the loads and stores.
+
