@@ -20,18 +20,18 @@ int main()
     // No stride case
     const long long noStrideTime = testStride(1);
 
-    // 1: Test at 64 bytes
-    long long strideTime = testStride(16);
-    printf("Ratio for 64B stride = %.3f\n---\n", strideTime / static_cast<float>(noStrideTime));
+    // // 1: Test at 64 bytes
+    // long long strideTime = testStride(16);
+    // printf("Ratio for 64B stride = %.3f\n---\n", strideTime / static_cast<float>(noStrideTime));
 
-    printf("Stride_bytes, Time_us, Ratio\n");
+    printf("Stride, Time_us, Ratio\n");
 
     // 2: Sequential strides
     warmup();
-    for (size_t stride = 1; stride < 64; stride += 1)
+    for (size_t stride = 2; stride < 64; stride += 1)
     {
         auto strideTime = testStride(stride);
-        printf("%lu, %lld, %.3f\n", stride * sizeof(float), strideTime,
+        printf("%lu, %lld, %.3f\n", stride, strideTime,
             strideTime / static_cast<float>(noStrideTime));
     }
 }
@@ -57,12 +57,14 @@ long long testStride(size_t stride)
     constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
 
     // Explicit scalar accumulators - compiler keeps these in registers
-    // (arrays often get spilled to stack, adding unwanted memory traffic)
+    // Prevent RAW hazard with a single accumulator
     float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
     float s4 = 0, s5 = 0, s6 = 0, s7 = 0;
 
     size_t idx = 0;
     auto start = clock::now();
+
+    // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
     for (size_t i = 0; i < ITERATIONS; i++)
     {
         s0 += data[idx];
