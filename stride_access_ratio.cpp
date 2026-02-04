@@ -22,13 +22,13 @@ int main()
 
     // 1: Test at 64 bytes
     long long strideTime = testStride(16);
-    printf("Ratio = %.3f\n---\n", strideTime / static_cast<float>(noStrideTime));
+    printf("Ratio for 64B stride = %.3f\n---\n", strideTime / static_cast<float>(noStrideTime));
 
     printf("Stride_bytes, Time_us, Ratio\n");
 
     // 2: Sequential strides
     warmup();
-    for (size_t stride = 4; stride < 32; stride += 4)
+    for (size_t stride = 1; stride < 64; stride += 1)
     {
         auto strideTime = testStride(stride);
         printf("%lu, %lld, %.3f\n", stride * sizeof(float), strideTime,
