@@ -7,7 +7,7 @@
 constexpr size_t ARRAY_SIZE = 64'000'000;
 constexpr size_t MAX_STRIDE = 64;
 
-float data[ARRAY_SIZE];
+alignas(64) float data[ARRAY_SIZE];
 
 void warmup();
 long long testStride(size_t stride);
@@ -20,15 +20,11 @@ int main()
     // No stride case
     const long long noStrideTime = testStride(1);
 
-    // // 1: Test at 64 bytes
-    // long long strideTime = testStride(16);
-    // printf("Ratio for 64B stride = %.3f\n---\n", strideTime / static_cast<float>(noStrideTime));
-
     printf("Stride, Time_us, Ratio\n");
 
-    // 2: Sequential strides
+    // Sequential strides: 
     warmup();
-    for (size_t stride = 2; stride < 64; stride += 1)
+    for (size_t stride = 2; stride < 32; stride += 1)
     {
         auto strideTime = testStride(stride);
         printf("%lu, %lld, %.3f\n", stride, strideTime,
@@ -53,26 +49,15 @@ long long testStride(size_t stride)
 
     // Keep # accesses consistent as stride changes
     constexpr size_t NUM_ACCESSES = ARRAY_SIZE / MAX_STRIDE;
-    constexpr size_t UNROLL = 8;
-    constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
 
     size_t idx = 0;
     auto start = clock::now();
 
-    // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
     // In-place increment: each access is independent (different address), so adds can pipeline
-    // Trade-off: now doing load+store instead of just load
-    for (size_t i = 0; i < ITERATIONS; i++)
+    for (size_t i = 0; i < NUM_ACCESSES; i++)
     {
         data[idx] += 1.0f;
-        data[idx + stride] += 1.0f;
-        data[idx + 2 * stride] += 1.0f;
-        data[idx + 3 * stride] += 1.0f;
-        data[idx + 4 * stride] += 1.0f;
-        data[idx + 5 * stride] += 1.0f;
-        data[idx + 6 * stride] += 1.0f;
-        data[idx + 7 * stride] += 1.0f;
-        idx += UNROLL * stride;
+        idx += stride;
     }
     auto end = clock::now();
 
