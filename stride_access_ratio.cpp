@@ -56,32 +56,25 @@ long long testStride(size_t stride)
     constexpr size_t UNROLL = 8;
     constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
 
-    // Explicit scalar accumulators - compiler keeps these in registers
-    // Prevent RAW hazard with a single accumulator
-    float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
-    float s4 = 0, s5 = 0, s6 = 0, s7 = 0;
-
     size_t idx = 0;
     auto start = clock::now();
 
     // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
+    // In-place increment: each access is independent (different address), so adds can pipeline
+    // Trade-off: now doing load+store instead of just load
     for (size_t i = 0; i < ITERATIONS; i++)
     {
-        s0 += data[idx];
-        s1 += data[idx + stride];
-        s2 += data[idx + 2 * stride];
-        s3 += data[idx + 3 * stride];
-        s4 += data[idx + 4 * stride];
-        s5 += data[idx + 5 * stride];
-        s6 += data[idx + 6 * stride];
-        s7 += data[idx + 7 * stride];
+        data[idx] += 1.0f;
+        data[idx + stride] += 1.0f;
+        data[idx + 2 * stride] += 1.0f;
+        data[idx + 3 * stride] += 1.0f;
+        data[idx + 4 * stride] += 1.0f;
+        data[idx + 5 * stride] += 1.0f;
+        data[idx + 6 * stride] += 1.0f;
+        data[idx + 7 * stride] += 1.0f;
         idx += UNROLL * stride;
     }
     auto end = clock::now();
-
-    // Prevent compiler from optimizing away
-    float sink = s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7;
-    if (sink == -1.0f) printf("\n");
 
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
