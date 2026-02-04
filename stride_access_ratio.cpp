@@ -18,27 +18,15 @@ int main(int argc, char **argv)
     warmup();
 
     // No stride case
-    long long strideTime = testStride(std::atoi(argv[1]));
-    
-    std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\n";
-    //tratio: " << strideTime / static_cast<
-      //  float>(noStrideTime) << std::endl;
+    const long long noStrideTime = testStride(1);
 
-    // // 1: Test at 64 bytes
-    // long long strideTime = testStride(16);
-    // std::cout << 16 * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime / static_cast<
-    //     float>(noStrideTime) << std::endl;
-
-    // std::cout << "---" << std::endl;
-
-    // // 2: Sequential strides
-    // warmup();
-    // for (size_t stride = 4; stride < 32; stride += 4)
-    // {
-    //     auto strideTime = testStride(stride);
-    //     std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime /
-    //         static_cast<float>(noStrideTime) << std::endl;
-    // }
+    // 2: Sequential strides
+    for (size_t stride = 2; stride < 32; stride++)
+    {
+        auto strideTime = testStride(stride);
+        std::cout << stride * sizeof(float) << "B stride\ttime: " << strideTime << " us\tratio: " << strideTime /
+            static_cast<float>(noStrideTime) << std::endl;
+    }
     return 0;
 }
 
@@ -55,35 +43,36 @@ void warmup()
 
 long long testStride(size_t stride)
 {
-    // 8 independent accumulators to break the serial dependency chain
-    // This lets the CPU issue multiple loads in parallel
-    float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
-    float s4 = 0, s5 = 0, s6 = 0, s7 = 0;
-
     using clock = std::chrono::steady_clock;
 
+    // Keep # accesses consistent as stride changes
     constexpr size_t NUM_ACCESSES = ARRAY_SIZE / MAX_STRIDE;
     constexpr size_t UNROLL = 8;
-    size_t iterations = NUM_ACCESSES / UNROLL;
+    constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
+
+    // 8 independent accumulators to break the data dependency between loop iterations
+    // This lets the CPU issue multiple loads in parallel
+    float accumm[UNROLL] = {0};
 
     size_t idx = 0;
     auto start = clock::now();
-    for (size_t i = 0; i < iterations; i++)
+    for (size_t i = 0; i < ITERATIONS; i++)
     {
-        s0 += data[idx];
-        s1 += data[idx + stride];
-        s2 += data[idx + 2 * stride];
-        s3 += data[idx + 3 * stride];
-        s4 += data[idx + 4 * stride];
-        s5 += data[idx + 5 * stride];
-        s6 += data[idx + 6 * stride];
-        s7 += data[idx + 7 * stride];
+        // Access data with index strides
+        for (size_t j = 0; j < UNROLL; j++)
+        {
+            accumm[j] += data[idx + j * stride];
+        }
         idx += UNROLL * stride;
     }
     auto end = clock::now();
 
     // Prevent compiler from optimizing away
-    float sink = s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7;
+    float sink = 0;
+    for (size_t j = 0; j < UNROLL; j++)
+    {
+        sink += accumm[j];
+    }
     if (sink == -1.0f) std::cout << "";
 
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
