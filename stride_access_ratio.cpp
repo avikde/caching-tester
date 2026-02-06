@@ -49,17 +49,51 @@ long long testStride(size_t stride)
 
     // Keep # accesses consistent as stride changes
     constexpr size_t NUM_ACCESSES = ARRAY_SIZE / MAX_STRIDE;
+    constexpr size_t UNROLL = 8;
+    constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
 
+    // Explicit scalar accumulators - compiler keeps these in registers
+    // Prevent RAW hazard with a single accumulator
+    float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
+    float s4 = 0, s5 = 0, s6 = 0, s7 = 0;
+    float sink = 0;
     size_t idx = 0;
+    
     auto start = clock::now();
 
-    // In-place increment: each access is independent (different address), so adds can pipeline
+    // // 1) Accumulate into sink
+    // for (size_t i = 0; i < NUM_ACCESSES; i++)
+    // {
+    //     sink += data[idx];
+    //     idx += stride;
+    // }
+
+    // // 2) Unroll; separate accumulators
+    // // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
+    // for (size_t i = 0; i < ITERATIONS; i++)
+    // {
+    //     s0 += data[idx];
+    //     s1 += data[idx + stride];
+    //     s2 += data[idx + 2 * stride];
+    //     s3 += data[idx + 3 * stride];
+    //     s4 += data[idx + 4 * stride];
+    //     s5 += data[idx + 5 * stride];
+    //     s6 += data[idx + 6 * stride];
+    //     s7 += data[idx + 7 * stride];
+    //     idx += UNROLL * stride;
+    // }
+    
+    // 3) In-place increment: each access is independent (different address), so adds can pipeline
     for (size_t i = 0; i < NUM_ACCESSES; i++)
     {
         data[idx] += 1.0f;
         idx += stride;
     }
     auto end = clock::now();
+    
+    // // Prevent compiler from optimizing away the loop
+    // sink = s0 + s1 + s2 + s3 + s4 + s5 + s6 + s7; // 2)
+    // if (sink == -1.0f) printf("\n"); // 1) or 2)
 
     return std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
 }
