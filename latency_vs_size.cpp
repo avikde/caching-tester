@@ -1,7 +1,4 @@
 /**
- * Author: Greg Anderson
- * Modified by Avik De
- *
  * Memory latency vs working set size.
  * Based on Chips and Cheese's approach.
  *
