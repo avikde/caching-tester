@@ -24,7 +24,7 @@ int main()
 
     // Sequential strides: 
     warmup();
-    for (size_t stride = 2; stride < 32; stride += 1)
+    for (size_t stride = 2; stride < MAX_STRIDE; stride += 1)
     {
         auto strideTime = testStride(stride);
         printf("%lu, %lld, %.3f\n", stride, strideTime,
