@@ -49,14 +49,14 @@ long long testStride(size_t stride)
 
     // Keep # accesses consistent as stride changes
     constexpr size_t NUM_ACCESSES = ARRAY_SIZE / MAX_STRIDE;
-    constexpr size_t UNROLL = 8;
-    constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL;
+    // constexpr size_t UNROLL = 8; // 2)
+    // constexpr size_t ITERATIONS = NUM_ACCESSES / UNROLL; // 2)
 
-    // Explicit scalar accumulators - compiler keeps these in registers
-    // Prevent RAW hazard with a single accumulator
-    float s0 = 0, s1 = 0, s2 = 0, s3 = 0;
-    float s4 = 0, s5 = 0, s6 = 0, s7 = 0;
-    float sink = 0;
+    // // Explicit scalar accumulators - compiler keeps these in registers
+    // // Prevent RAW hazard with a single accumulator
+    // float s0 = 0, s1 = 0, s2 = 0, s3 = 0; // 2)
+    // float s4 = 0, s5 = 0, s6 = 0, s7 = 0; // 2)
+    // float sink = 0; // 1) or 2)
     size_t idx = 0;
     
     auto start = clock::now();
