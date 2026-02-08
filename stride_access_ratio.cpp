@@ -34,6 +34,8 @@ int main(int argc, char** argv)
         warmup();
     for (size_t stride = 1; stride < MAX_STRIDE; stride += 1)
     {
+        if (useInBandWarmup)
+            testStride(stride, mode);
         auto strideTime = testStride(stride, mode);
         printf("%lu, %lld\n", stride, strideTime);
     }
@@ -66,47 +68,6 @@ long long testStride(size_t stride, Mode mode_arg)
     float s4 = 0, s5 = 0, s6 = 0, s7 = 0; // 2)
     float sink = 0; // 1) or 2)
     size_t idx = 0;
-
-    if (useInBandWarmup)
-    {
-        if (mode == Accum)
-        {
-            // 1) Accumulate into sink
-            for (size_t i = 0; i < NUM_ACCESSES; i++)
-            {
-                sink += data[idx];
-                idx += stride;
-            }
-        }
-        else if (mode == AccumUnroll)
-        {
-            // 2) Unroll; separate accumulators
-            // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
-            for (size_t i = 0; i < ITERATIONS; i++)
-            {
-                s0 += data[idx];
-                s1 += data[idx + stride];
-                s2 += data[idx + 2 * stride];
-                s3 += data[idx + 3 * stride];
-                s4 += data[idx + 4 * stride];
-                s5 += data[idx + 5 * stride];
-                s6 += data[idx + 6 * stride];
-                s7 += data[idx + 7 * stride];
-                idx += UNROLL * stride;
-            }
-        }
-        else if (mode == RMW)
-        {
-            // 3) In-place increment: each access is independent (different address), so adds can pipeline
-            for (size_t i = 0; i < NUM_ACCESSES; i++)
-            {
-                data[idx] += 1.0f;
-                idx += stride;
-            }
-        }
-        sink = 0; // 1) or 2)
-        idx = 0;
-    }
 
     auto start = clock::now();
 
