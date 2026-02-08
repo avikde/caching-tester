@@ -3,18 +3,23 @@
  */
 #include <cstdio>
 #include <chrono>
+#include <cstdlib>
 
 constexpr size_t ARRAY_SIZE = 64'000'000;
 constexpr size_t MAX_STRIDE = 64;
+
 // 1 = accumulate, 2 = accumulate, unroll, 3 = RMW
 enum Mode { Accum = 1, AccumUnroll = 2, RMW = 3 };
+
+bool useWarmup = false;
+bool useInBandWarmup = true;
 
 alignas(64) float data[ARRAY_SIZE];
 
 void warmup();
 long long testStride(size_t stride, Mode mode);
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
     Mode mode = RMW;
     if (argc > 1)
@@ -24,8 +29,9 @@ int main(int argc, char **argv)
     printf("STRIDED ACCESS TIME\nOutput is a CSV for easy plotting\n\n");
     printf("Stride, Time_us\n");
 
-    // Sequential strides: 
-    warmup();
+    // Sequential strides:
+    if (useWarmup)
+        warmup();
     for (size_t stride = 1; stride < MAX_STRIDE; stride += 1)
     {
         auto strideTime = testStride(stride, mode);
@@ -60,7 +66,48 @@ long long testStride(size_t stride, Mode mode_arg)
     float s4 = 0, s5 = 0, s6 = 0, s7 = 0; // 2)
     float sink = 0; // 1) or 2)
     size_t idx = 0;
-    
+
+    if (useInBandWarmup)
+    {
+        if (mode == Accum)
+        {
+            // 1) Accumulate into sink
+            for (size_t i = 0; i < NUM_ACCESSES; i++)
+            {
+                sink += data[idx];
+                idx += stride;
+            }
+        }
+        else if (mode == AccumUnroll)
+        {
+            // 2) Unroll; separate accumulators
+            // Each iter access data[idx .. idx + UNROLL * stride], which is 4 * UNROLL * stride = 32 * stride bytes
+            for (size_t i = 0; i < ITERATIONS; i++)
+            {
+                s0 += data[idx];
+                s1 += data[idx + stride];
+                s2 += data[idx + 2 * stride];
+                s3 += data[idx + 3 * stride];
+                s4 += data[idx + 4 * stride];
+                s5 += data[idx + 5 * stride];
+                s6 += data[idx + 6 * stride];
+                s7 += data[idx + 7 * stride];
+                idx += UNROLL * stride;
+            }
+        }
+        else if (mode == RMW)
+        {
+            // 3) In-place increment: each access is independent (different address), so adds can pipeline
+            for (size_t i = 0; i < NUM_ACCESSES; i++)
+            {
+                data[idx] += 1.0f;
+                idx += stride;
+            }
+        }
+        sink = 0; // 1) or 2)
+        idx = 0;
+    }
+
     auto start = clock::now();
 
     if (mode == Accum)
@@ -99,7 +146,7 @@ long long testStride(size_t stride, Mode mode_arg)
         }
     }
     auto end = clock::now();
-    
+
     // Prevent compiler from optimizing away the loop
     if (mode == AccumUnroll)
     {
