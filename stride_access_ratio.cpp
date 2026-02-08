@@ -15,20 +15,14 @@ long long testStride(size_t stride);
 int main()
 {
     printf("STRIDED ACCESS TIME RATIO\nOutput is a CSV for easy plotting\n\n");
-    warmup();
-
-    // No stride case
-    const long long noStrideTime = testStride(1);
-
-    printf("Stride, Time_us, Ratio\n");
+    printf("Stride, Time_us\n");
 
     // Sequential strides: 
     warmup();
-    for (size_t stride = 2; stride < MAX_STRIDE; stride += 1)
+    for (size_t stride = 1; stride < MAX_STRIDE; stride += 1)
     {
         auto strideTime = testStride(stride);
-        printf("%lu, %lld, %.3f\n", stride, strideTime,
-            strideTime / static_cast<float>(noStrideTime));
+        printf("%lu, %lld\n", stride, strideTime);
     }
 }
 
